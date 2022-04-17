@@ -12,4 +12,4 @@ app_plot/log/*
 app_plot/__pycache__/*
 app_gnss/*.log
 app_gnss/*.out
-
+app_plot/main.py
