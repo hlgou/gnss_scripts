@@ -10,3 +10,6 @@ app_gnss/__pycache__/*
 app_plot/*.ini
 app_plot/log/*
 app_plot/__pycache__/*
+app_gnss/*.log
+app_gnss/*.out
+
