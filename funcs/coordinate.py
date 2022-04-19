@@ -1,6 +1,8 @@
 # ===========================================================
 # ========================= imports =========================
+import math
 import numpy as _np
+from typing import List
 # ===========================================================
 __all__ = ["ell2cart", "cart2ell","ell2topo"]
 
@@ -19,8 +21,8 @@ class _Ellipsoid:
         return M, N
 # -----------------------------------------------------------------------------
 def _ellipsoid(ellipsoidName):
-    axes = {'GRS80'  : [6378137.000, 6356752.314140],
-            'WGS84'  : [6378137.000, 6356752.314245],
+    axes = {'GRS80'  : [6378137.000, 6356752.31414035],
+            'WGS84'  : [6378137.000, 6356752.31424517],
             'Hayford': [6378388.000, 6356911.946000]}[ellipsoidName]
     a, b = axes[0], axes[1]
     return _Ellipsoid(a,b)
@@ -32,10 +34,10 @@ def ell2cart(lat, lon, h, ellipsoid = 'GRS80'):
     ellipsoid = _ellipsoid(ellipsoid)
     lat = lat * _np.pi / 180 # in radians
     lon = lon * _np.pi / 180 # in radians
-    N = ellipsoid.a / _np.sqrt(1-ellipsoid.e2 * _np.sin(lat)**2)
+    N = ellipsoid.a / _np.sqrt(1-ellipsoid.e1**2 * _np.sin(lat)**2)
     x = (N + h) * _np.cos(lat) * _np.cos(lon)
     y = (N + h) * _np.cos(lat) * _np.sin(lon)
-    z = ((1-ellipsoid.e2) * N + h) * _np.sin(lat)
+    z = ((1-ellipsoid.e1**2) * N + h) * _np.sin(lat)
     return x,y,z
 
 def cart2ell(x, y, z, ellipsoid = 'GRS80'):
@@ -71,9 +73,38 @@ def cart2ell_direct(x, y, z, ellipsoid = 'GRS80'):
     h = (p/_np.cos(lat))-N
     return _np.rad2deg(lat), _np.rad2deg(lon), h
 
+def dxyz2enu(ell: List[float], dxyz: List[float]):
+    """
+    This function converts 3D cartesian coordinates to geodetic coordinates
+
+    > @param[in] ell:           [B,L,H](degree) of the site0
+    > @param[in] dxyz:          [dx,dy,dz](meter) of the (site - site0)
+	return: 
+	< @param[out] n,e,u:        the [N,E,U] of the site
+    """
+    lat = ell[0] * _np.pi / 180 # in radians
+    lon = ell[1] * _np.pi / 180 # in radians
+    sinPhi = math.sin(lat)
+    cosPhi = math.cos(lat)
+    sinLam = math.sin(lon)
+    cosLam = math.cos(lon)
+    n = -sinPhi * cosLam * dxyz[0] - sinPhi * sinLam * dxyz[1] + cosPhi * dxyz[2]
+    e = -sinLam * dxyz[0] + cosLam * dxyz[1]
+    u = cosPhi * cosLam * dxyz[0] + cosPhi * sinLam * dxyz[1] + sinPhi * dxyz[2]
+    return e, n, u
+
+
 def ell2topo(lat, lon, h):
     """
-    Convert ellipsoidal coordinates to topocentric coordinates 
+    Convert ellipsoidal coordinates to topocentric coordinates, get a rotate matrix
+
+    > @param[in] lat:           the Latitude(degree) of the site0
+    > @param[in] lat:           the Longitude(degree) of the site0
+    > @param[in] h:             the H(meter) of the site0
+	return: 
+	< @param[out] east:         the cloumn matrix for East: dxyz(raw matrix)*east=E
+    < @param[out] north:        the cloumn matrix for North: dxyz(raw matrix)*north=N
+    < @param[out] up:           the cloumn matrix for Up: dxyz(raw matrix)*up=U
     """
     lat, lon = _np.deg2rad(lat), _np.deg2rad(lon) # convert degree to radian
     east = _np.matrix([[-_np.sin(lon)], [_np.cos(lon)], [0]])

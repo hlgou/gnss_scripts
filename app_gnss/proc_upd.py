@@ -41,7 +41,7 @@ class ProcUpd(ProcGen):
             GrtAmbfix(self._config, 'SD', 'ambfix', nmp=self.nthread, all_sites=True).run()
         GrtPpplsq(self._config, 'ppplsq', nmp=self.nthread, fix_amb=fix, stop=False).run()
         self.basic_check(files=['recover_all', 'ambupd_in'])
-        check_res_sigma(self._config)
+        #check_res_sigma(self._config)
 
     def copy_upd(self, upd_results, old, new):
         if not old or not new or old == new:
