@@ -37,8 +37,8 @@ def get_args_config(args) -> GnssConfig:
     config.obs_comb = args.obs_comb if args.obs_comb else config.obs_comb
     config.orb_ac = args.cen if args.cen else config.orb_ac
     config.bia_ac = args.bia if args.bia else config.bia_ac
-    if config.orb_ac == 'cod':
-        config.bia_ac = 'COD'
+    # if config.orb_ac == 'cod':
+    #     config.bia_ac = 'COD'
     # if config.freq > 2:
     #     config.bia_ac = 'CAS'
 
